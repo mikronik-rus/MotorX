@@ -66,3 +66,24 @@ private:
     int speed = 0; // текущая скорость вращения мотора в формате шим сигнала
     byte dir = 0;  // текущее направление вращения
 };
+
+/**
+ * @brief Класс управления сервоприводами на цифровых портах
+ * 
+ */
+class ServoX
+{
+public:
+    void Attach(byte port);
+    void Write(byte t = 254, byte inc = 0);
+    byte Read();
+    void On();
+    void Off();
+    bool ReadMode();
+
+private:
+    byte ugol = 90;
+    bool mode = true;
+    byte port = 0;
+    byte c_ugol = 90;
+};

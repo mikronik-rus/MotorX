@@ -135,3 +135,83 @@ void MotorX::WriteMotor(byte pwm1, byte pwm2)
     ledcWrite(canal2, pwm2);
 #endif
 }
+
+/**
+ * @brief Поворот сервопривода на указанный угол
+ * 
+ * @param t Угол поворота в градусах от 0 до 180
+ * @param inc Величина-скорость наращивания угла до указано в параметре "t"
+ * @tparam inc Если равен нулю, то угол устанавливается мгновенно до  указанного
+ * @tparam  Вызов функции без параметров установит последний установленный угол поворота
+ * @tparam Который можно получить командой Servo.Read() 
+ */
+void ServoX::Write(byte t, byte inc)
+{
+    if (mode)
+    {
+        inc = constrain(inc, 0, 180);
+        if (t != 254)
+            ugol = t;
+        if (inc > 0)
+        {
+            c_ugol = c_ugol + (inc * (c_ugol < ugol)) - (inc * (c_ugol > ugol));
+            c_ugol = constrain(c_ugol, 0, ugol);
+        }
+        else
+        {
+            c_ugol = ugol;
+        }
+
+        t = map(constrain(c_ugol, 0, 180), 0, 180, 540, 2400);
+        digitalWrite(port, 1);
+        delayMicroseconds(t);
+        digitalWrite(port, 0);
+        delayMicroseconds(20000 - t);
+    }
+}
+/**
+ * @brief Установка параметров сервопривода
+ * 
+ * @param p Цифровой порт подключения сервопривода
+ */
+void ServoX::Attach(byte p)
+{
+    port = p;
+    mode = true;
+    pinMode(port, OUTPUT);
+}
+/**
+ * @brief Разрешает работу серво привода
+ * 
+ */
+void ServoX::On()
+{
+    mode = true;
+}
+/**
+ * @brief Отключает работу серво привода 
+ * 
+ */
+void ServoX::Off()
+{
+    mode = false;
+}
+/**
+ * @brief Возвращает установленный угол на серво приводе 
+ * 
+ * @return byte Угол в градусах
+ */
+byte ServoX::Read()
+{
+    return ugol;
+}
+/**
+ * @brief Возвращает текущий режим работы серво привода
+ * 
+ * @retval True Серво привод включен
+ * @retval False Серво привод отключен
+ */
+bool ServoX::ReadMode()
+{
+    return mode;
+}
