@@ -1,11 +1,18 @@
 {
   "name": "MotorX",
-  "keywords": "begin",
-  "description": "hellp",
+  "keywords": "motorx, servox",
+  "description": "Библиотека управления коллекторными моторами и серво приводами ",
   "repository": {
     "type": "git",
     "url": "https://github.com/Zalautdinov/MotorX.git"
   },
   "version": "1.0",
-  "frameworks": "arduino"
+  "frameworks": "arduino",
+    "platforms":
+  [
+    "atmelavr",
+    "espressif32",
+    "espressif8266"
+  ]
 }
+

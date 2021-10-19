@@ -46,8 +46,14 @@
 class MotorX
 {
 public:
+#if defined(ESP8266) || defined(ARDUINO_ESP8266_NODEMCU) || defined(__AVR_ATmega328P__)
     void begin(byte chip, byte In1, byte In2, byte InPwm = 254);
-    void On(byte dir_in, byte pwm, byte inc);
+#endif
+#if defined(ESP32)
+    void begin(byte chip, byte In1, byte canal_in1, byte In2, byte canal_in2, byte InPwm = 254, byte canal_InPwm = 254);
+#endif
+
+    void On(byte dir_in, byte pwm, byte inc = 254);
 
 private:
     void WriteMotor(byte pwm1, byte pwm2);
@@ -55,6 +61,8 @@ private:
     byte port_in1 = 0;
     byte port_in2 = 0;
     byte port_pwm = 254;
+    byte canal1;
+    byte canal2;
     int speed = 0; // текущая скорость вращения мотора в формате шим сигнала
     byte dir = 0;  // текущее направление вращения
 };
