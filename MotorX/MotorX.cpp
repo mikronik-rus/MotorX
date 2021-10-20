@@ -112,7 +112,7 @@ void MotorX::On(byte dir_in, byte pwm, byte inc)
         else
         {
 
-            Serial.println(String(dir) + "  " + String(dir_in) + "  " + String(speed) + "  " + String(pwm));
+            //Serial.println(String(dir) + "  " + String(dir_in) + "  " + String(speed) + "  " + String(pwm));
             digitalWrite(port_in1, dir);
             digitalWrite(port_in2, !dir);
 #if defined(ESP8266) || defined(ARDUINO_ESP8266_NODEMCU) || defined(__AVR_ATmega328P__)
@@ -151,33 +151,44 @@ void ServoX::Write(byte t, byte inc)
     {
         inc = constrain(inc, 0, 180);
         if (t != 254)
+        {
+            t = constrain(t, 0, 180);
             ugol = t;
+        }
+        if (rev)
+            t = 90 + (ugol - 90);
+        else
+            t = 90 - (ugol - 90);
+
         if (inc > 0)
         {
-            c_ugol = c_ugol + (inc * (c_ugol < ugol)) - (inc * (c_ugol > ugol));
-            c_ugol = constrain(c_ugol, 0, ugol);
+            c_ugol = c_ugol + (inc * (c_ugol < t)) - (inc * (c_ugol > t));
+            c_ugol = constrain(c_ugol, 0, 180);
         }
         else
         {
-            c_ugol = ugol;
+            c_ugol = constrain(t, 0, 180);
         }
 
-        t = map(constrain(c_ugol, 0, 180), 0, 180, 540, 2400);
+        int t_u = map(c_ugol, 0, 180, 540, 2400);
+
         digitalWrite(port, 1);
-        delayMicroseconds(t);
+        delayMicroseconds(t_u);
         digitalWrite(port, 0);
-        delayMicroseconds(20000 - t);
+        delayMicroseconds(20000 - t_u);
     }
 }
 /**
  * @brief Установка параметров сервопривода
  * 
  * @param p Цифровой порт подключения сервопривода
+ * @param revers  TRUE или FALSE смена направления вращения сервопривода
  */
-void ServoX::Attach(byte p)
+void ServoX::Attach(byte p, bool revers)
 {
     port = p;
     mode = true;
+    rev = revers;
     pinMode(port, OUTPUT);
 }
 /**

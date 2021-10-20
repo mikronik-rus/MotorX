@@ -74,7 +74,7 @@ private:
 class ServoX
 {
 public:
-    void Attach(byte port);
+    void Attach(byte port, bool revers = true);
     void Write(byte t = 254, byte inc = 0);
     byte Read();
     void On();
@@ -86,4 +86,5 @@ private:
     bool mode = true;
     byte port = 0;
     byte c_ugol = 90;
+    bool rev = true;
 };
