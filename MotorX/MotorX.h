@@ -34,7 +34,7 @@
 
 #define L9110 0
 #define TA6586 0
-#define VHN2SP30 1
+#define VNH2SP30 1
 
 /** 
  * @brief Управление мотороми

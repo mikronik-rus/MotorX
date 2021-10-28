@@ -48,7 +48,7 @@ void MotorX::begin(byte chip, byte In1, byte canal_in1, byte In2, byte canal_in2
         canal2 = canal_in2;
     }
 
-    if (dr_chip == VHN2SP30)
+    if (dr_chip == VNH2SP30)
     {
         ledcAttachPin(InPwm, canal_InPwm);
         ledcSetup(canal_InPwm, 5000, 8);
@@ -97,7 +97,7 @@ void MotorX::On(byte dir_in, byte pwm, byte inc)
         else
             WriteMotor(pwm * dir, pwm * !dir);
     }
-    if (dr_chip == VHN2SP30)
+    if (dr_chip == VNH2SP30)
     {
         if (dir_in == 2)
         {
