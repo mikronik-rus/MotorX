@@ -48,7 +48,7 @@ void MotorX::begin(byte chip, byte In1, byte canal_in1, byte In2, byte canal_in2
         canal2 = canal_in2;
     }
 
-    if (dr_chip == VNH2SP30)
+    if (dr_chip == VHN2SP30)
     {
         ledcAttachPin(InPwm, canal_InPwm);
         ledcSetup(canal_InPwm, 5000, 8);
@@ -72,6 +72,48 @@ void MotorX::begin(byte chip, byte In1, byte canal_in1, byte In2, byte canal_in2
  */
 void MotorX::On(byte dir_in, byte pwm, byte inc)
 {
+    // блок управления фарами и стоп сигналом
+    //===========================================
+    if (p_fara_forvard != 254) // если объявлен порт для фары
+    {
+        if (fara_forvard == 1) // Режим включить фары
+        {
+            digitalWrite(p_fara_forvard, 0);
+        }
+        if (fara_forvard == 0) // Режим выключить фары
+        {
+            digitalWrite(p_fara_forvard, 1);
+        }
+        if (fara_forvard == 2) // Режим автоматически выключить фары после стоянки
+        {
+            if (speed > 0)
+            {
+                t_curent = millis(); // обнулить счетчик простоя
+                digitalWrite(p_fara_forvard, 0);
+            }
+            else
+            {
+                if (millis() - t_curent > t_on * 1000) // выключить фары если простаивает заданное время
+                {
+                    digitalWrite(p_fara_forvard, 1);
+                }
+            }
+        }
+    }
+    //  управление стоп сигналом
+
+    if (p_fara_back != 254) // если объявлен поррт фары
+    {
+        if (speed > pwm || dir_in == 3)
+        {
+            digitalWrite(p_fara_back, 0); // включить стоп сигнал
+        }
+        else
+        {
+            digitalWrite(p_fara_back, 1); // выключить стоп сигнал
+        }
+    }
+    //===========================================
 
     if (speed == 0 && dir_in < 2)
         dir = dir_in;
@@ -97,7 +139,7 @@ void MotorX::On(byte dir_in, byte pwm, byte inc)
         else
             WriteMotor(pwm * dir, pwm * !dir);
     }
-    if (dr_chip == VNH2SP30)
+    if (dr_chip == VHN2SP30)
     {
         if (dir_in == 2)
         {
@@ -134,6 +176,18 @@ void MotorX::WriteMotor(byte pwm1, byte pwm2)
     ledcWrite(canal1, pwm1);
     ledcWrite(canal2, pwm2);
 #endif
+}
+
+void MotorX::SvetInit(byte fara_mode, byte port_fara_forvard, int time_On, byte port_fara_back)
+{
+    if (port_fara_forvard != 254)
+        p_fara_forvard = port_fara_forvard;
+
+    if (port_fara_back != 254)
+        p_fara_back = port_fara_back;
+
+    fara_forvard = fara_mode;
+    t_on = time_On;
 }
 
 /**

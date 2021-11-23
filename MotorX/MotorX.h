@@ -34,7 +34,10 @@
 
 #define L9110 0
 #define TA6586 0
-#define VNH2SP30 1
+#define VHN2SP30 1
+#define ON 1
+#define OFF 0
+#define AUTO 2
 
 /** 
  * @brief Управление мотороми
@@ -54,6 +57,9 @@ public:
 #endif
 
     void On(byte dir_in, byte pwm, byte inc = 254);
+    void SvetInit(byte fara_mode, byte port_fara_forvard = 254, int time_On = 30, byte port_fara_back = 254);
+
+    byte fara_forvard = OFF; // ON  OFF  AUTO
 
 private:
     void WriteMotor(byte pwm1, byte pwm2);
@@ -65,6 +71,12 @@ private:
     byte canal2;
     int speed = 0; // текущая скорость вращения мотора в формате шим сигнала
     byte dir = 0;  // текущее направление вращения
+
+    byte p_fara_forvard = 254;  // порт подключения передних фар
+    byte p_fara_back = 254;     // порт подключения задних фар
+    unsigned long t_on = 30;    // время горения фары при простое
+    unsigned long t_curent = 0; // время простоя двигателя
+    byte b_dir = 1;             // сигнал направления при движении назад
 };
 
 /**
