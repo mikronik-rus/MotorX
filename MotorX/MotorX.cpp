@@ -16,6 +16,10 @@ void MotorX::begin(byte chip, byte In1, byte In2, byte InPwm)
     port_in1 = In1;
     port_in2 = In2;
     port_pwm = InPwm;
+
+    pinMode(In1, OUTPUT);
+    pinMode(In2, OUTPUT);
+    pinMode(InPwm, OUTPUT);
 }
 #endif
 
@@ -37,6 +41,9 @@ void MotorX::begin(byte chip, byte In1, byte canal_in1, byte In2, byte canal_in2
     port_in1 = In1;
     port_in2 = In2;
     port_pwm = InPwm;
+    pinMode(In1, OUTPUT);
+    pinMode(In2, OUTPUT);
+    pinMode(InPwm, OUTPUT);
 
     if (dr_chip == L9110 || dr_chip == TA6586)
     {
@@ -100,20 +107,6 @@ void MotorX::On(byte dir_in, byte pwm, byte inc)
             }
         }
     }
-    //  управление стоп сигналом
-
-    if (p_fara_back != 254) // если объявлен поррт фары
-    {
-        if (speed > pwm || dir_in == 3)
-        {
-            digitalWrite(p_fara_back, 0); // включить стоп сигнал
-        }
-        else
-        {
-            digitalWrite(p_fara_back, 1); // выключить стоп сигнал
-        }
-    }
-    //===========================================
 
     if (speed == 0 && dir_in < 2)
         dir = dir_in;
@@ -128,6 +121,7 @@ void MotorX::On(byte dir_in, byte pwm, byte inc)
     {
         speed = speed + (inc * (speed < pwm)) - (inc * (speed > pwm));
     }
+
     speed = constrain(speed, 0, 254);
 
     if (dr_chip == L9110 || dr_chip == TA6586)
@@ -165,7 +159,24 @@ void MotorX::On(byte dir_in, byte pwm, byte inc)
 #endif
         }
     }
+    //  управление стоп сигналом
+
+    if (p_fara_back != 254) // если объявлен поррт фары
+    {
+        // Serial.println(String(speed) + "   " + String(pwm) + "   " + String(dir_in));
+        if ((speed > pwm) || dir_in == 3)
+        //if (dir_in == 3)
+        {
+            digitalWrite(p_fara_back, 1); // включить стоп сигнал
+        }
+        else
+        {
+            digitalWrite(p_fara_back, 0); // выключить стоп сигнал
+        }
+    }
+    //===========================================
 }
+
 void MotorX::WriteMotor(byte pwm1, byte pwm2)
 {
 #if defined(ESP8266) || defined(ARDUINO_ESP8266_NODEMCU) || defined(__AVR_ATmega328P__)
@@ -188,6 +199,8 @@ void MotorX::SvetInit(byte fara_mode, byte port_fara_forvard, int time_On, byte 
 
     fara_forvard = fara_mode;
     t_on = time_On;
+    pinMode(p_fara_back, OUTPUT);
+    pinMode(p_fara_forvard, OUTPUT);
 }
 
 /**
