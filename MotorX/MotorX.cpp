@@ -3,8 +3,8 @@
 #if defined(ESP8266) || defined(ARDUINO_ESP8266_NODEMCU) || defined(__AVR_ATmega328P__)
 
 /**
- * @brief Создаем новый мотор 
- * 
+ * @brief Создаем новый мотор
+ *
  * @param chip тип микросхемы драйвера коллекторного мотора ( L9110=0, TA6586=0, VHN2SP30=1 )
  * @param In1 1 порт входного сигнала для управления скоростью ( PWM )
  * @param In2 2 порт входного сигнала для управления скоростью ( PWM )
@@ -25,8 +25,8 @@ void MotorX::begin(byte chip, byte In1, byte In2, byte InPwm)
 
 #if defined(ESP32)
 /**
- * @brief Создаем новый мотор 
- * 
+ * @brief Создаем новый мотор
+ *
  * @param chip тип микросхемы драйвера коллекторного мотора ( L9110=0, TA6586=0, VHN2SP30=1 )
  * @param In1 1 Первый порт входного сигнала для управления скоростью ( PWM )
  * @param canal_in1 Номер первого шим канала только для ESP32
@@ -49,8 +49,8 @@ void MotorX::begin(byte chip, byte In1, byte canal_in1, byte In2, byte canal_in2
     {
         ledcAttachPin(In1, canal_in1);
         ledcAttachPin(In2, canal_in2);
-        ledcSetup(canal_in1, 5000, 8);
-        ledcSetup(canal_in2, 5000, 8);
+        ledcSetup(canal_in1, 1000, 8);
+        ledcSetup(canal_in2, 1000, 8);
         canal1 = canal_in1;
         canal2 = canal_in2;
     }
@@ -58,7 +58,7 @@ void MotorX::begin(byte chip, byte In1, byte canal_in1, byte In2, byte canal_in2
     if (dr_chip == VHN2SP30)
     {
         ledcAttachPin(InPwm, canal_InPwm);
-        ledcSetup(canal_InPwm, 5000, 8);
+        ledcSetup(canal_InPwm, 50, 8);
         canal1 = canal_InPwm;
     }
 }
@@ -67,14 +67,14 @@ void MotorX::begin(byte chip, byte In1, byte canal_in1, byte In2, byte canal_in2
 
 /**
  * @brief Запуск вращения двигателя с плавным ускорением или на прямую от pwm
- * 
+ *
  * @param dir_in Направление вращения мотора
  * @tparam dir=2 холостой ход
  * @tparam dir=0 направление вперед
  * @tparam dir=1 направление назад
  * @tparam dir=3 тормоз двигателя если потдерживает драйвер
- * 
- * @param pwm Шим сионал - управление скоростью вращения 
+ *
+ * @param pwm Шим сионал - управление скоростью вращения
  * @param inc ускорение от 0 до pwm (если inc = pwm скорость равна pwm)
  */
 void MotorX::On(byte dir_in, byte pwm, byte inc)
@@ -113,16 +113,17 @@ void MotorX::On(byte dir_in, byte pwm, byte inc)
 
     if (dir_in != dir)
     {
-        pwm = constrain(speed - 1, 0, 254);
+        pwm = constrain(speed - 1, 0, 255);
     }
     if (inc == pwm)
         speed = pwm;
     else
     {
-        speed = speed + (inc * (speed < pwm)) - (inc * (speed > pwm));
+        speed = speed + (inc * (speed < pwm)) - (inc * 2 * (speed > pwm));
     }
 
-    speed = constrain(speed, 0, 254);
+    speed = constrain(speed, 0, 255);
+    speed_curent = speed;
 
     if (dr_chip == L9110 || dr_chip == TA6586)
     {
@@ -130,8 +131,8 @@ void MotorX::On(byte dir_in, byte pwm, byte inc)
             WriteMotor(0, 0);
         if (dir_in == 3)
             WriteMotor(254, 254);
-        else
-            WriteMotor(pwm * dir, pwm * !dir);
+        if (dir_in < 2)
+            WriteMotor(speed * dir, speed * !dir);
     }
     if (dr_chip == VHN2SP30)
     {
@@ -148,7 +149,7 @@ void MotorX::On(byte dir_in, byte pwm, byte inc)
         else
         {
 
-            //Serial.println(String(dir) + "  " + String(dir_in) + "  " + String(speed) + "  " + String(pwm));
+            // Serial.println(String(dir) + "  " + String(dir_in) + "  " + String(speed) + "  " + String(pwm));
             digitalWrite(port_in1, dir);
             digitalWrite(port_in2, !dir);
 #if defined(ESP8266) || defined(ARDUINO_ESP8266_NODEMCU) || defined(__AVR_ATmega328P__)
@@ -165,7 +166,7 @@ void MotorX::On(byte dir_in, byte pwm, byte inc)
     {
         // Serial.println(String(speed) + "   " + String(pwm) + "   " + String(dir_in));
         if ((speed > pwm) || dir_in == 3)
-        //if (dir_in == 3)
+        // if (dir_in == 3)
         {
             digitalWrite(p_fara_back, 1); // включить стоп сигнал
         }
@@ -186,6 +187,7 @@ void MotorX::WriteMotor(byte pwm1, byte pwm2)
 #if defined(ESP32)
     ledcWrite(canal1, pwm1);
     ledcWrite(canal2, pwm2);
+    
 #endif
 }
 
@@ -205,12 +207,12 @@ void MotorX::SvetInit(byte fara_mode, byte port_fara_forvard, int time_On, byte 
 
 /**
  * @brief Поворот сервопривода на указанный угол
- * 
+ *
  * @param t Угол поворота в градусах от 0 до 180
  * @param inc Величина-скорость наращивания угла до указано в параметре "t"
  * @tparam inc Если равен нулю, то угол устанавливается мгновенно до  указанного
  * @tparam  Вызов функции без параметров установит последний установленный угол поворота
- * @tparam Который можно получить командой Servo.Read() 
+ * @tparam Который можно получить командой Servo.Read()
  */
 void ServoX::Write(byte t, byte inc)
 {
@@ -247,7 +249,7 @@ void ServoX::Write(byte t, byte inc)
 }
 /**
  * @brief Установка параметров сервопривода
- * 
+ *
  * @param p Цифровой порт подключения сервопривода
  * @param revers  TRUE или FALSE смена направления вращения сервопривода
  */
@@ -260,23 +262,23 @@ void ServoX::Attach(byte p, bool revers)
 }
 /**
  * @brief Разрешает работу серво привода
- * 
+ *
  */
 void ServoX::On()
 {
     mode = true;
 }
 /**
- * @brief Отключает работу серво привода 
- * 
+ * @brief Отключает работу серво привода
+ *
  */
 void ServoX::Off()
 {
     mode = false;
 }
 /**
- * @brief Возвращает установленный угол на серво приводе 
- * 
+ * @brief Возвращает установленный угол на серво приводе
+ *
  * @return byte Угол в градусах
  */
 byte ServoX::Read()
@@ -285,11 +287,21 @@ byte ServoX::Read()
 }
 /**
  * @brief Возвращает текущий режим работы серво привода
- * 
+ *
  * @retval True Серво привод включен
  * @retval False Серво привод отключен
  */
 bool ServoX::ReadMode()
 {
     return mode;
+}
+
+float AkbRead(byte port_akb) // Измеряем напряжение на аналоговом порту
+{
+    if (port_akb == 255)
+        port_akb = A0;
+    pinMode(port_akb, INPUT);
+    float ak = analogRead(A0);
+    ak = round((ak * 3.3 / 1024 * 10 * 1.098) * 10) / 10;
+    return ak;
 }

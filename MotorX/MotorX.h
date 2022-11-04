@@ -58,8 +58,8 @@ public:
 
     void On(byte dir_in, byte pwm, byte inc = 254);
     void SvetInit(byte fara_mode, byte port_fara_forvard = 254, int time_On = 30, byte port_fara_back = 254);
-
     byte fara_forvard = OFF; // ON  OFF  AUTO
+    int speed_curent;
 
 private:
     void WriteMotor(byte pwm1, byte pwm2);
@@ -100,3 +100,4 @@ private:
     byte c_ugol = 90;
     bool rev = true;
 };
+float AkbRead(byte port_akb = 255);
